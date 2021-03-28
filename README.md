@@ -4,4 +4,4 @@
 #### [Part 1](https://github.com/tsa-dom/FullstackOpen2021/tree/main/part1)
 #### [Part 2](https://github.com/tsa-dom/FullstackOpen2021/tree/main/part2)
 
-#### [Phonebook Heroku backend](https://secure-plains-61951.herokuapp.com/info)
+#### [Phonebook Heroku](https://secure-plains-61951.herokuapp.com)
