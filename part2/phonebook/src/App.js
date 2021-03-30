@@ -39,59 +39,64 @@ const App = () => {
   }, [])
 
   const handleFilterChange = event => { setNewFilter(event.target.value)}
-  
-  const timeOut = () => setTimeout(() => setNotification(null), 4000)
-  
+ 
+  const notificationMessage = (color, message) => {
+    setColor(color)
+    setNotification(message)
+    setTimeout(() => setNotification(null), 4000)
+  }
+
+  const newPerson = () => {
+    const personObject = {
+      name: newName.trim(),
+      number: newNumber.trim()
+    }
+    personService
+      .addPerson(personObject)
+      .then(response => {
+        setPersons(persons.concat(response))
+        notificationMessage('green', `Added ${response.name}`)
+      })
+      .catch(error => notificationMessage('red', error.response.data.error))
+  }
+
+  const modifyPerson = (person) => {
+    if (window.confirm(`${newName} is already added to phonebook, replace the old number wiht a new one?`)) {
+      const personObject = {
+        name: person[0].name,
+        number: newNumber.trim(),
+        id: person[0].id
+      }
+      personService
+        .changeInfo(personObject)
+        .then(response => {
+          setPersons(persons.map(p => p.id !== personObject.id ? p : personObject))
+          notificationMessage('green', `Modified ${personObject.name}`)
+        })
+        .catch(error => notificationMessage('red', error.response.data.error))
+    }
+  }
+
   const addPerson = event => {
     event.preventDefault()
     const samePersons = persons.filter(person => person.name === newName.trim())
-    if (samePersons.length === 0) {
-      const personObject = {
-        name: newName.trim(),
-        number: newNumber.trim()
-      }
-      personService
-        .addPerson(personObject)
-        .then(response => {
-          setPersons(persons.concat(response))
-          setColor('green')
-          setNotification(`Added ${response.name}`)
-          timeOut()
-        })
-    } else {
-      if (window.confirm(`${newName} is already added to phonebook, replace the old number wiht a new one?`)) {
-        const personObject = {
-          name: samePersons[0].name,
-          number: newNumber.trim(),
-          id: samePersons[0].id
-        }
-        personService
-          .changeInfo(personObject)
-          .then(response => {
-            setPersons(persons.map(p => p.id !== personObject.id ? p : personObject))
-            setColor('green')
-            setNotification(`Modified ${personObject.name}`)
-            timeOut()
-          })
-      }
-    }
+    if (samePersons.length === 0) newPerson()
+    else modifyPerson(samePersons)
     setNewName('')
     setNewNumber('')
   }
+
   const deletePerson = event => {
     event.preventDefault()
-    const person = persons.filter(p => p.id === Number(event.target.value))[0]
+    const person = persons.filter(p => p.id === event.target.value)[0]
     if (window.confirm(`Delete ${person.name} ?`) === true) {
       personService
         .deletePerson(person)
         .then(() => {
-          setNotification(`Deleted ${person.name}`)
-          timeOut()
+          notificationMessage('green', `Deleted ${person.name}`)
         })
         .catch(error => {
-          setColor('red')
-          setNotification(`Information of ${person.name} has already been removed from server`)
-          timeOut()
+          notificationMessage('red', `Information of ${person.name} has already been removed from server`)
         })
         .then(setPersons(persons.filter(p => p.id !== person.id)))
     }
