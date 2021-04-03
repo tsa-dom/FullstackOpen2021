@@ -93,8 +93,8 @@ describe('adding a new blog', () => {
   })
 })
 
-describe('blog addition fails', () => {
-  test('if "title" is not defined', async () => {
+describe('a blog cannot be', () => {
+  test('added if "title" is not defined', async () => {
       const newBlog = {
         author: 'no title',
         url: 'no url',
@@ -110,7 +110,7 @@ describe('blog addition fails', () => {
       expect(blogs).toHaveLength(helper.initialBlogs.length)
   })
     
-  test('if "url" is not defined', async () => {
+  test('added if "url" is not defined', async () => {
       const newBlog = {
         title: 'title here',
         author: 'no url',
@@ -125,7 +125,8 @@ describe('blog addition fails', () => {
       const blogs = await helper.blogsInDB()
       expect(blogs).toHaveLength(helper.initialBlogs.length)
   })
-  test('if user is not authorized', async () => {
+
+  test('added if user is not authorized', async () => {
     const newBlog = {
       title: 'unauthorized',
       author: 'nan',
@@ -140,30 +141,88 @@ describe('blog addition fails', () => {
     const blogs = await helper.blogsInDB()
     expect(blogs).toHaveLength(helper.initialBlogs.length)
   })
+
+  test('modified if user is not authorized', async () => {
+    const blogToModified = (await api.get('/api/blogs')).body[0]
+    const blog = {
+      title: 'hacking',
+      author: 'this',
+      url: 'token',
+      likes: 9999
+    }
+    
+    await api
+      .put(`/api/blogs/${blogToModified.id}`)
+      .send(blog)
+      .expect(401)
+
+    const blogsAfterModify = await helper.blogsInDB()
+
+    const title = blogsAfterModify.map(blog => blog.title)
+    expect(title).not.toContain(blog.title)  
+  })
+
+  test('deleted if user is not authorized', async () => {
+    const blog = {
+      title: 'you',
+      author: 'cant',
+      url: 'delete',
+      likes: 999
+    }
+    await api
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
+      .send(blog)
+      
+    const blogsBeforeRemove = await helper.blogsInDB()
+    expect(blogsBeforeRemove).toHaveLength(helper.initialBlogs.length + 1)
+
+    const blogToDelete = (await helper.blogsInDB())[helper.initialBlogs.length]
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(401)
+    
+    const blogsAfterRemove = await helper.blogsInDB()
+    expect(blogsAfterRemove).toHaveLength(helper.initialBlogs.length + 1)
+    
+    const ids = blogsAfterRemove.map(blog => blog.id)
+    expect(ids).toContain(blogToDelete.id)
+  })
 })
 
 describe('a blog can be modified', () => {
   test('if authorized user modifies it', async () => {
-      const blogToModified = (await api.get('/api/blogs')).body[0]
-      const blog = {
-        title: 'mod',
-        author: 'mod',
-        url: 'mod',
-        likes: 500
-      }
-      await api
-        .put(`/api/blogs/${blogToModified.id}`)
-        .set('Authorization', `Bearer ${token}`)
-        .send(blog)
-        .expect(204)
+    const modifyThis = {
+      title: 'modify',
+      author: 'this',
+      url: 'please',
+      likes: 131
+    }  
+    await api
+      .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
+      .send(modifyThis)
+
+    const blogsBeforeModify = await helper.blogsInDB()
+    expect(blogsBeforeModify).toHaveLength(helper.initialBlogs.length + 1)
+
+    const blogToModified = (await helper.blogsInDB())[helper.initialBlogs.length]
+    const blog = {
+      title: 'too easy',
+      author: 'for',
+      url: 'me',
+      likes: 500
+    }
+    await api
+      .put(`/api/blogs/${blogToModified.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(blog)
+      .expect(204)
       
-      const blogsAfterModify = await helper.blogsInDB()
-      expect(blogsAfterModify).toHaveLength(helper.initialBlogs.length)
-      
-      const ids = blogsAfterModify.map(blog => blog.id)
-      const author = blogsAfterModify.map(blog => blog.auhtor)
-      expect(ids).toContain(blogToModified.id)
-      expect(author).toContain(blogToModified.auhtor)
+    const blogsAfterModify = await helper.blogsInDB()
+    expect(blogsAfterModify).toHaveLength(helper.initialBlogs.length + 1)
+    const title = blogsAfterModify.map(blog => blog.title)
+    expect(title).toContain(blog.title)
   })
 })
 

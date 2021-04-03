@@ -42,14 +42,24 @@ blogsRouter.delete('/:id', userExtractor, async (request, response) => {
 
 blogsRouter.put('/:id', userExtractor, async (request, response) => {
   const body = request.body
-  const blog = {
-    title: body.title,
-    author: body.author,
-    url: body.url,
-    likes: body.likes | 0
+  const user = request.user
+  const blog = await Blog.findById(request.params.id)
+
+  if (blog !== null && blog.user.toString() === user._id.toString()) {
+    const modifiedBlog = {
+      title: body.title,
+      author: body.author,
+      url: body.url,
+      likes: body.likes | 0
+    }
+    await Blog.findByIdAndUpdate(request.params.id, modifiedBlog, { new: true })
+    response.status(204).end()
+  } else {
+    response
+      .status(401)
+      .json({ error: 'invalid token or blog id' })
+      .end()
   }
-  await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
-  response.status(204).end()
 })
 
 module.exports = blogsRouter
