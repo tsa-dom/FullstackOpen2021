@@ -8,3 +8,4 @@
 #### [Part 4](https://github.com/tsa-dom/FullstackOpen2021/tree/main/part4)
 #### [Part 5](https://github.com/tsa-dom/FullstackOpen2021/tree/main/part5)
 #### [Part 6](https://github.com/tsa-dom/FullstackOpen2021/tree/main/part6)
+#### [Part 7](https://github.com/tsa-dom/FullstackOpen2021/tree/main/part7)
