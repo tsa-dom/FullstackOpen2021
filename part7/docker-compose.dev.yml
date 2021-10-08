@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  nginx:
+    depends_on:
+      - frontend
+      - backend
+    image: nginx:1.20.1
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 5000:80
+    container_name: reverse-proxy
+
+  backend:
+    build:
+      context: ./bloglist-backend/
+      dockerfile: dev.Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./bloglist-backend:/usr/src/app
+    environment:
+      - MONGODB_URL=mongodb://root:secret@mongo:27017/blog_db
+      - PORT=3000
+      - SECRET=supersecret
+    container_name: backend
+
+  mongo:
+    image: mongo
+    ports:
+      - 3456:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: secret
+      MONGO_INITDB_DATABASE: blog_db
+    volumes:
+      - ./bloglist-backend/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      - ./bloglist-backend/mongo_data:/data/db
+    container_name: mongo
+
+  frontend:
+    build:
+      context: ./bloglist-frontend/
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./bloglist-frontend:/usr/src/app
+    ports:
+      - 3001:3000
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:3000
+    container_name: frontend

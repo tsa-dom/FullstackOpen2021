@@ -10,7 +10,7 @@ const middleware = require('./utils/middleware')
 
 const mongoose = require('mongoose')
 
-mongoose.connect(config.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
+if (config.MONGODB_URL && !mongoose.connection.readyState) mongoose.connect(config.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
 
 const morgan = require('morgan')
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))

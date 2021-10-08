@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
-import axios from 'axios'
+import axios from '../utils/client'
 
 export const useField = type => {
   const [value, setValue] = useState('')
